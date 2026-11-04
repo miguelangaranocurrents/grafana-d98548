@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 
 import { type DataFrame, type TimeRange } from '@grafana/data';
-import { LegendDisplayMode } from '@grafana/schema';
 import { useTheme2 } from '@grafana/ui';
 import { hasVisibleLegendSeries, PlotLegend, type UPlotConfigBuilder } from '@grafana/ui/internal';
 import { type TimeSeriesLegendOptions } from 'app/plugins/panel/timeseries/panelcfg.gen';
@@ -11,6 +10,9 @@ import { GraphNG, type GraphNGProps, type PropDiffFn } from '../GraphNG/GraphNG'
 import { getXAxisConfig, preparePlotConfigBuilder } from './utils';
 
 const propsToDiff: Array<string | PropDiffFn> = ['legend', 'options', 'annotationLanes', 'theme'];
+
+// `hidden` is deprecated in favour of `showLegend: false`, but saved panels still use it.
+const isHiddenDisplayMode = (displayMode: unknown) => displayMode === 'hidden';
 
 type TimeSeriesProps = Omit<GraphNGProps, 'prepConfig' | 'propsToDiff' | 'renderLegend' | 'theme' | 'legend'> & {
   legend: TimeSeriesLegendOptions;
@@ -46,7 +48,7 @@ export function TimeSeries(props: TimeSeriesProps) {
       // measures as zero height and would stop VizLayout from rendering the plot at all.
       if (
         !uPlotConfig ||
-        (legend && (!legend.showLegend || legend.displayMode === LegendDisplayMode.Hidden)) ||
+        (legend && (!legend.showLegend || isHiddenDisplayMode(legend.displayMode))) ||
         !hasVisibleLegendSeries(uPlotConfig, frames)
       ) {
         return null;
